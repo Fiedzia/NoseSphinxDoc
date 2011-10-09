@@ -217,7 +217,23 @@ class SphinxDocPlugin(Plugin):
                 lines.append('{0}:doc:`{1} <./{1}/index>`\n'.format(
                     ' ' * 4, m))
         return ''.join(lines)
-       
+
+    def _get_toc(self, test_dict):
+        """
+        Generate TOC for submodules.
+        """
+        lines = []
+        submodules = sorted(test_dict.keys())
+        if '__tests__' in submodules:
+            submodules.remove('__tests__')
+        if submodules:
+            lines.append('.. toctree::\n')
+            lines.append('    :maxdepth: 2\n')
+            lines.append('\n')
+            for submodule in submodules:
+                lines.append('    ./{0}/index\n').format(submodule)
+            lines.append('\n')
+        return ''.join(lines)
 
     def _traverse(self, test_dict, dirname, module_path):
         """
@@ -227,6 +243,7 @@ class SphinxDocPlugin(Plugin):
         header = self._gen_header(module_path)
 
         docfile.write(self.sphinxSection(header, section_char='='))
+        docfile.write(self._get_toc(test_dict))
 
         if '__tests__' in test_dict:
             docfile.write(self._document_tests(test_dict['__tests__']))
