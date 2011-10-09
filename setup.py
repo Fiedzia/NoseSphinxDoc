@@ -30,6 +30,6 @@ setup(
     entry_points = {
         'nose.plugins': ['nose_sphinx_doc = nose_sphinx_doc:SphinxDocPlugin']
         },
-    install_requires = ['nose'],
+    install_requires = ['nose', 'mock'],
     test_suite = 'nose.collector',
 )
