@@ -212,7 +212,7 @@ class SphinxDocPlugin(Plugin):
         """
         lines = []
         if submodules:
-            linesz.append(self.sphinxSection('Submodules'))
+            lines.append(self.sphinxSection('Submodules'))
         for m in submodules:
                 lines.append('{0}:doc:`{1} <./{1}/index.rst>`\n'.format(
                     ' ' * 4, m))
@@ -241,7 +241,7 @@ class SphinxDocPlugin(Plugin):
         for m in submodules:
             new_module_path = module_path[:]
             new_module_path.append(m)
-            _traverse(test_dict[m], os.path.join(dirname, m),
+            self._traverse(test_dict[m], os.path.join(dirname, m),
                  new_module_path)
 
     def genSphinxDoc(self, test_dict, dirname):
