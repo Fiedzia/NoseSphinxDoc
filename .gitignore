@@ -1,5 +1,5 @@
 bin
-docs
+docs/_build
 include
 lib
 local
