@@ -1,8 +1,7 @@
 import os
 import logging
-import types
 import unittest
-import errno 
+import errno
 
 import nose
 from nose.plugins import Plugin
@@ -17,6 +16,7 @@ LOGGER = logging.getLogger(__file__)
         * tests (unit and functional)
         * graphviz graphs
 """
+
 
 class SphinxDocPlugin(Plugin):
     """
@@ -138,7 +138,6 @@ class SphinxDocPlugin(Plugin):
             self.testToDict(test_dict, test_info)
         return test_dict
 
-
     def sphinxSection(self, name, section_char='-'):
         """
         Generate sphinx-formatted header.
@@ -150,73 +149,89 @@ class SphinxDocPlugin(Plugin):
         :returns:
             Sphinx section header.
         """
-        return '{0}\n{1}\n{0}\n'.format(section_char*len(name), name)
+        return '{0}\n{1}\n{0}\n'.format(section_char * len(name), name)
 
+    def _makedirs(dirname):
+        """
+        """
+        try:
+            os.makedirs(dirname)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST:
+                pass
+            else:
+                raise
+
+    def _gen_header(self, module_path):
+        """
+        """
+        header = 'Tests'
+        if module_path:
+            header = 'Tests for {0}'.format('.'.join(module_path))
+        return header
+
+    def _document_test_case(test_info):
+        """
+        """
+        lines = []
+        lines.append('{0}.. autoclass:: {1}.{2}\n'.format(
+                ' ' * 4, test_info['module'], test_info['name']))
+        lines.append('{0}:members:\n'.format(' ' * 8))
+        return ''.join(lines)
+
+    def _document_function_test_case(test_info):
+        """
+        """
+        return('{0}.. autofunction:: {1}.{2}\n'.format(
+            ' ' * 4, test_info['module'], test_info['name']))
+
+    def _traverse(self, test_dict, dirname, module_path):
+        """
+        """
+        self._makedirs(dirname)
+        docfile = open(os.path.join(dirname, 'index.rst'), 'w')
+        header = self._gen_header(module_path)
+
+        docfile.write(self.sphinxSection(header, section_char='='))
+
+        if '__tests__' in test_dict:
+            docfile.write(self.sphinxSection('Available tests'))
+
+            for test_info in test_dict['__tests__']:
+                if test_info['type'] == 'TestCase':
+                    docfile.write(self._document_test_case(test_info))
+                elif test_info['type'] == 'FunctionTestCase':
+                    docfile.write(self._document_function_test_case(test_info))
+            docfile.write('\n')
+
+        submodules = sorted(test_dict.keys())
+        if '__tests__' in submodules:
+            submodules.remove('__tests__')
+        if submodules:
+            docfile.write(self.sphinxSection('Submodules'))
+        for m in submodules:
+                docfile.write('{0}:doc:`./{1}/index.rst`\n'.format(
+                    ' ' * 4, m))
+        docfile.close()
+
+        #recursive calls
+        for m in submodules:
+            new_module_path = module_path[:]
+            new_module_path.append(m)
+            _traverse(test_dict[m], os.path.join(dirname, m),
+                 new_module_path)
 
     def genSphinxDoc(self, test_dict, dirname):
         """
         For given test_dict create nested set .rst files for sphinx.
-        
+
         :param test_dict:
             python dictionary representing structure of tests
 
         :param: dirname:
             name of output directory
         """
-
-            
-
-        def _traverse(test_dict, dirname, module_path):
-            """
-            """
-            try:
-                os.makedirs(dirname)
-            except OSError as exc:
-                if exc.errno == errno.EEXIST:
-                    pass
-                else:
-                    raise
-            docfile = open(os.path.join(dirname, 'index.rst'), 'w')
-
-            header = 'Tests'
-            if module_path:
-                header = 'Tests for {0}'.format('.'.join(module_path))
-
-            docfile.write(self.sphinxSection(header, section_char='='))
-
-
-            if '__tests__' in test_dict:
-                docfile.write(self.sphinxSection('Available tests'))
-
-                for test_info in test_dict['__tests__']:
-                    if test_info['type'] == 'TestCase':
-                        docfile.write(
-                             '{0}.. autoclass:: {1}.{2}\n'.format(
-                                ' ' * 4, test_info['module'],
-                                test_info['name']))
-                        docfile.write('{0}:members:\n'.format(' '*8))
-                    elif test_info['type'] == 'FunctionTestCase':
-                        docfile.write('{0}.. autofunction:: {1}.{2}\n'
-                            .format(' ' * 4, test_info['module'],
-                             test_info['name']))
-                docfile.write('\n')
-
-            submodules = sorted(test_dict.keys())
-            if '__tests__' in submodules:
-                submodules.remove('__tests__')
-            if submodules:
-                docfile.write(self.sphinxSection('Submodules'))
-            for m in submodules:
-                    docfile.write('{0}:doc:`./{1}/index.rst`\n'.format(' ' * 4, m))
-            docfile.close()
-
-            #recursive calls
-            for m in submodules:
-                new_module_path = module_path[:]
-                new_module_path.append(m)
-                _traverse(test_dict[m], os.path.join(dirname, m) , new_module_path)
-
-        _traverse(test_dict, dirname, [])
+        self._traverse(test_dict, dirname, [])
 
     #methods inherited from Plugin
 
@@ -246,7 +261,6 @@ class SphinxDocPlugin(Plugin):
                                " use with sphinx_doc option"
                                " [NOSE_SPHINX_DOC_DIR]")
 
-
     def configure(self, options, conf):
         super(SphinxDocPlugin, self).configure(options, conf)
         self.doc_dir_name = options.sphinx_doc_dir
@@ -254,4 +268,3 @@ class SphinxDocPlugin(Plugin):
     def finalize(self, result):
         test_dict = self.processTests(self.tests)
         self.genSphinxDoc(test_dict, self.doc_dir_name)
-
