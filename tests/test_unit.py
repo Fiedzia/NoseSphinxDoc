@@ -1,16 +1,17 @@
 import copy
+import unittest
 
 import nose
-from nose.tools import assert_equal, assert_is
+from nose.tools import assert_equal, assert_is, assert_raises
+from mock import Mock, patch
 
 from nose_sphinx_doc import SphinxDocPlugin
 
 
-def test_sphinx_doc_plugin__store_test():
+def test_sphinx_doc_plugin__store_test__single_call():
     """
-    Test :py:meth:`nose_sphinx_doc.SphinxDocPlugin.storeTest`.
+    Test single call of :py:meth:`.SphinxDocPlugin.storeTest`.
     """
-
     #test single call
     plugin = SphinxDocPlugin()
     test = nose.case.Test( lambda x:x)
@@ -18,6 +19,10 @@ def test_sphinx_doc_plugin__store_test():
     plugin.storeTest(test)
     assert_equal(plugin.tests, [test])
 
+def test_sphinx_doc_plugin__store_test__several_calls():
+    """
+    Test several calls to :py:meth:`.SphinxDocPlugin.storeTest`.
+    """
     #test double call
     plugin = SphinxDocPlugin()
     assert_equal(plugin.tests, [])
@@ -48,4 +53,124 @@ def test_sphinx_doc_plugin__test_to_dict():
     test_dict = {}
     plugin.testToDict(test_dict, test_info)
     assert_equal(test_dict, expected_dict)
-   
+
+def test_sphinx_doc_plugin__extract_test_info__function():
+    """
+    Test test data extraction from FunctionTestCase.
+
+    Test :py:meth:`.SphinxDocPlugin.extractTestInfo` for proper info extraction
+    from an instance of :py:class:`nose.case.FunctionTestCase`.
+    """
+    plugin = SphinxDocPlugin()
+    test = Mock(nose.case.Test)
+    test.test = Mock(nose.case.FunctionTestCase)
+    test.test.test = Mock()
+    test.test.test.__module__ = 'module'
+    test.test.test.__name__ = 'name'
+
+    expected_result = {
+        'module': 'module',
+        'name': 'name',
+        'test': test,
+        'type': 'FunctionTestCase',
+    }
+    test_info = plugin.extractTestInfo(test)
+    assert_equal(test_info, expected_result)
+ 
+def test_sphinx_doc_plugin__extract_test_info__test_case():
+    """
+    Test test data extraction from unittest.TestCase.
+
+    Test :py:meth:`.SphinxDocPlugin.extractTestInfo` for proper info extraction
+    from an instance of :py:class:`unittest.TestCase`.
+    """
+    plugin = SphinxDocPlugin()
+    test = Mock(nose.case.Test)
+    test.test = Mock(unittest.TestCase)
+    test.test.test = Mock()
+    test.test.__module__ = 'module'
+
+    expected_result = {
+        'module': 'module',
+        'name': 'Mock',
+        'test': test,
+        'type': 'TestCase',
+    }
+    test_info = plugin.extractTestInfo(test)
+    assert_equal(test_info, expected_result)
+
+def test_sphinx_doc_plugin__extract_test_info__unsupported_type():
+    """
+    Test  proper exception raising for unsupported data types.
+
+    Test :py:meth:`.SphinxDocPlugin.extractTestInfo` for proper exception
+    raising for unsupported types of tests.
+    """
+    class Dummy:
+        pass
+    plugin = SphinxDocPlugin()
+    test = Mock(nose.case.Test)
+    test.test = Mock(Dummy)
+    test.test.test = Mock()
+    test.test.__module__ = 'module'
+
+    assert_raises(Exception, plugin.extractTestInfo, test)
+
+@patch('nose_sphinx_doc.SphinxDocPlugin.testToDict')
+@patch('nose_sphinx_doc.SphinxDocPlugin.extractTestInfo')
+def test_sphinx_doc_plugin__process_tests__empty_list(extractTestInfo,
+                                                        testToDict):
+    """
+    Test :py:meth:`.SphinxDocPlugin.processTests` with empty list.
+    """
+    plugin = SphinxDocPlugin()
+    test_list = []
+    expected_result = {}
+    result = plugin.processTests(test_list)
+    assert_equal(result, expected_result)
+    assert_equal(extractTestInfo.call_count, 0)
+    assert_equal(testToDict.call_count, 0)
+
+@patch('nose_sphinx_doc.SphinxDocPlugin.testToDict')
+@patch('nose_sphinx_doc.SphinxDocPlugin.extractTestInfo')
+def test_sphinx_doc_plugin__process_tests__single_test(extractTestInfo,
+                                                        testToDict):
+    """
+    Test :py:meth:`.SphinxDocPlugin.processTests` with single test.
+    """
+    plugin = SphinxDocPlugin()
+    test_list = [1]
+    expected_result = {}
+    result = plugin.processTests(test_list)
+    assert_equal(result, expected_result)
+    assert_equal(extractTestInfo.call_count, 1)
+    assert_equal(testToDict.call_count, 1)
+
+@patch('nose_sphinx_doc.SphinxDocPlugin.testToDict')
+@patch('nose_sphinx_doc.SphinxDocPlugin.extractTestInfo')
+def test_sphinx_doc_plugin__process_tests__several_tests(extractTestInfo,
+                                                        testToDict):
+    """
+    Test :py:meth:`.SphinxDocPlugin.processTests` with several test.
+    """
+    plugin = SphinxDocPlugin()
+    test_list = [1, 2, 3]
+    expected_result = {}
+    result = plugin.processTests(test_list)
+    assert_equal(result, expected_result)
+    assert_equal(extractTestInfo.call_count, len(test_list))
+    assert_equal(testToDict.call_count, len(test_list))
+
+def test_sphinx_doc_plugin__process_tests_sphinx_section():
+    """
+    Test :py:meth:`.SphinxDocPlugin.sphinxSection`.
+    """
+    plugin = SphinxDocPlugin()
+    expected_result = '-----\nTests\n-----\n'
+    result = plugin.sphinxSection('Tests')
+    assert_equal(result, expected_result)
+
+    expected_result = '=====\nTests\n=====\n'
+    result = plugin.sphinxSection('Tests', section_char='=')
+    assert_equal(result, expected_result)
+
