@@ -11,11 +11,10 @@ LOGGER = logging.getLogger(__file__)
 
 """
     TODO:
-        * sphinx doc
-        * github repo
+        * complete sphinx documentation
         * prepare nose plugin
-        * test counter
-        * tests
+        * test counter (test count in brackets next to  submodule links)
+        * tests (unit and functional)
         * graphviz graphs
 """
 
@@ -70,34 +69,40 @@ class SphinxDocPlugin(Plugin):
         else:
             current['__tests__'] = [test_info]
 
-    def processTests(self):
+    def processTests(self, tests):
         """
         Convert list of tests stored in self.tests into
         a dictionary representing nested structure
-        of tests. For example for given module structure:
+        of tests.
 
-        .. code-block :: javascript
+        For example for given module structure:
+
+        .. code-block :: none
 
             top_level_module
                 -> sub_module
                     -> def test_me() ...
                     -> class MyTest(TestCase) ...
 
-            result will look like this:
-                {
-                    'top_level_module': {
-                        'sub_module': {
-                            '__tests__: {
-                                'test_me': ,
-                                'MyTest': ,
-                             }
-                        }
-                }
+
+        result will look like this:
+
+        .. code-block :: javascript
+
+            {
+                'top_level_module': {
+                    'sub_module': {
+                        '__tests__: {
+                            'test_me': ,
+                            'MyTest': ,
+                         }
+                    }
+            }
         """
         test_list = []  # list of tuples (module, name, test)
         test_dict = {}  # dict for storing test structure
 
-        for test in self.tests:
+        for test in tests:
 
             if isinstance(test.test, nose.case.FunctionTestCase):
                 real_test = test.test.test  # get unwrapped test function
@@ -200,11 +205,15 @@ class SphinxDocPlugin(Plugin):
 
     #methods inherited from Plugin
 
+    def __init__(self, *args, **kwargs):
+        super(SphinxDocPlugin, self).__init__(*args, **kwargs)
+        self.tests = []  # list of all tests
+
     def prepareTestCase(self, test):
         self.storeTest(test)
 
     def begin(self):
-        self.tests = []  # list of all tests
+        pass
 
     def options(self, parser, env=os.environ):
         #skip super call to avoid adding --with-* option.
@@ -228,6 +237,6 @@ class SphinxDocPlugin(Plugin):
         self.doc_dir_name = options.sphinx_doc_dir
 
     def finalize(self, result):
-        test_dict = self.processTests()
+        test_dict = self.processTests(self.tests)
         self.genSphinxDoc(test_dict, self.doc_dir_name)
 
