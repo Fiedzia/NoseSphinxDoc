@@ -151,8 +151,10 @@ class SphinxDocPlugin(Plugin):
         """
         return '{0}\n{1}\n{0}\n'.format(section_char * len(name), name)
 
-    def _makedirs(dirname):
+    @classmethod
+    def _makedirs(cls, dirname):
         """
+        Create directory structure without failing on existing dirs.
         """
         try:
             os.makedirs(dirname)
@@ -164,14 +166,16 @@ class SphinxDocPlugin(Plugin):
 
     def _gen_header(self, module_path):
         """
+        Generate header.
         """
         header = 'Tests'
         if module_path:
             header = 'Tests for {0}'.format('.'.join(module_path))
         return header
 
-    def _document_test_case(test_info):
+    def _document_test_case(self, test_info):
         """
+        Return sphinx-formatted doc for a TestCase type of test.
         """
         lines = []
         lines.append('{0}.. autoclass:: {1}.{2}\n'.format(
@@ -179,11 +183,41 @@ class SphinxDocPlugin(Plugin):
         lines.append('{0}:members:\n'.format(' ' * 8))
         return ''.join(lines)
 
-    def _document_function_test_case(test_info):
+    def _document_function_test_case(self, test_info):
         """
+        Return sphinx-formatted doc for a FunctionTestCase type of test.
         """
         return('{0}.. autofunction:: {1}.{2}\n'.format(
             ' ' * 4, test_info['module'], test_info['name']))
+
+    def _document_tests(self, test_info_list):
+        """
+        """
+        if not test_info_list:
+            return ''
+        lines = []
+        lines.append(self.sphinxSection('Available tests'))
+
+        for test_info in test_info_list:
+            if test_info['type'] == 'TestCase':
+                lines.append(self._document_test_case(test_info))
+            elif test_info['type'] == 'FunctionTestCase':
+                lines.append(self._document_function_test_case(test_info))
+        lines.append('\n')
+
+        return ''.join(lines)
+
+    def _document_submodules(self, submodules):
+        """
+        """
+        lines = []
+        if submodules:
+            linesz.append(self.sphinxSection('Submodules'))
+        for m in submodules:
+                lines.append('{0}:doc:`{1} <./{1}/index.rst>`\n'.format(
+                    ' ' * 4, m))
+        return ''.join(lines)
+       
 
     def _traverse(self, test_dict, dirname, module_path):
         """
@@ -195,23 +229,12 @@ class SphinxDocPlugin(Plugin):
         docfile.write(self.sphinxSection(header, section_char='='))
 
         if '__tests__' in test_dict:
-            docfile.write(self.sphinxSection('Available tests'))
-
-            for test_info in test_dict['__tests__']:
-                if test_info['type'] == 'TestCase':
-                    docfile.write(self._document_test_case(test_info))
-                elif test_info['type'] == 'FunctionTestCase':
-                    docfile.write(self._document_function_test_case(test_info))
-            docfile.write('\n')
+            docfile.write(self._document_tests(test_dict['__tests__']))
 
         submodules = sorted(test_dict.keys())
         if '__tests__' in submodules:
             submodules.remove('__tests__')
-        if submodules:
-            docfile.write(self.sphinxSection('Submodules'))
-        for m in submodules:
-                docfile.write('{0}:doc:`./{1}/index.rst`\n'.format(
-                    ' ' * 4, m))
+        docfile.write(self._document_submodules(submodules))
         docfile.close()
 
         #recursive calls
