@@ -2,7 +2,7 @@ import copy
 import unittest
 
 import nose
-from nose.tools import assert_equal, assert_is, assert_raises
+from nose.tools import assert_equal, assert_raises
 from mock import Mock, patch
 
 from nose_sphinx_doc import SphinxDocPlugin
@@ -14,10 +14,11 @@ def test_sphinx_doc_plugin__store_test__single_call():
     """
     #test single call
     plugin = SphinxDocPlugin()
-    test = nose.case.Test( lambda x:x)
+    test = nose.case.Test(lambda x: x)
     assert_equal(plugin.tests, [])
     plugin.storeTest(test)
     assert_equal(plugin.tests, [test])
+
 
 def test_sphinx_doc_plugin__store_test__several_calls():
     """
@@ -26,8 +27,8 @@ def test_sphinx_doc_plugin__store_test__several_calls():
     #test double call
     plugin = SphinxDocPlugin()
     assert_equal(plugin.tests, [])
-    test1 = nose.case.Test( lambda x:x)
-    test2 = nose.case.Test( lambda x:x)
+    test1 = nose.case.Test(lambda x: x)
+    test2 = nose.case.Test(lambda x: x)
     plugin.storeTest(test1)
     plugin.storeTest(test2)
     assert_equal(plugin.tests, [test1, test2])
@@ -54,6 +55,7 @@ def test_sphinx_doc_plugin__test_to_dict():
     plugin.testToDict(test_dict, test_info)
     assert_equal(test_dict, expected_dict)
 
+
 def test_sphinx_doc_plugin__extract_test_info__function():
     """
     Test test data extraction from FunctionTestCase.
@@ -76,7 +78,8 @@ def test_sphinx_doc_plugin__extract_test_info__function():
     }
     test_info = plugin.extractTestInfo(test)
     assert_equal(test_info, expected_result)
- 
+
+
 def test_sphinx_doc_plugin__extract_test_info__test_case():
     """
     Test test data extraction from unittest.TestCase.
@@ -99,6 +102,7 @@ def test_sphinx_doc_plugin__extract_test_info__test_case():
     test_info = plugin.extractTestInfo(test)
     assert_equal(test_info, expected_result)
 
+
 def test_sphinx_doc_plugin__extract_test_info__unsupported_type():
     """
     Test  proper exception raising for unsupported data types.
@@ -116,6 +120,7 @@ def test_sphinx_doc_plugin__extract_test_info__unsupported_type():
 
     assert_raises(Exception, plugin.extractTestInfo, test)
 
+
 @patch('nose_sphinx_doc.SphinxDocPlugin.testToDict')
 @patch('nose_sphinx_doc.SphinxDocPlugin.extractTestInfo')
 def test_sphinx_doc_plugin__process_tests__empty_list(extractTestInfo,
@@ -130,6 +135,7 @@ def test_sphinx_doc_plugin__process_tests__empty_list(extractTestInfo,
     assert_equal(result, expected_result)
     assert_equal(extractTestInfo.call_count, 0)
     assert_equal(testToDict.call_count, 0)
+
 
 @patch('nose_sphinx_doc.SphinxDocPlugin.testToDict')
 @patch('nose_sphinx_doc.SphinxDocPlugin.extractTestInfo')
@@ -146,6 +152,7 @@ def test_sphinx_doc_plugin__process_tests__single_test(extractTestInfo,
     assert_equal(extractTestInfo.call_count, 1)
     assert_equal(testToDict.call_count, 1)
 
+
 @patch('nose_sphinx_doc.SphinxDocPlugin.testToDict')
 @patch('nose_sphinx_doc.SphinxDocPlugin.extractTestInfo')
 def test_sphinx_doc_plugin__process_tests__several_tests(extractTestInfo,
@@ -161,6 +168,7 @@ def test_sphinx_doc_plugin__process_tests__several_tests(extractTestInfo,
     assert_equal(extractTestInfo.call_count, len(test_list))
     assert_equal(testToDict.call_count, len(test_list))
 
+
 def test_sphinx_doc_plugin__process_tests_sphinx_section():
     """
     Test :py:meth:`.SphinxDocPlugin.sphinxSection`.
@@ -173,4 +181,3 @@ def test_sphinx_doc_plugin__process_tests_sphinx_section():
     expected_result = '=====\nTests\n=====\n'
     result = plugin.sphinxSection('Tests', section_char='=')
     assert_equal(result, expected_result)
-
