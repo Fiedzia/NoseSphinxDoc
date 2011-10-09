@@ -5,7 +5,6 @@ import unittest
 import errno 
 
 import nose
-import django
 from nose.plugins import Plugin
 
 LOGGER = logging.getLogger(__file__)
@@ -51,10 +50,10 @@ class SphinxDocPlugin(Plugin):
         :param test_info:
             python dictionary with information about a test,
             contains keys:
-                * module: module name
-                * name: test name
-                * test: an instance of :py:class:`nose.case.Test`
-                * type: either "FunctionTestCase" or "TestCase"
+            * module: module name
+            * name: test name
+            * test: an instance of :py:class:`nose.case.Test`
+            * type: either "FunctionTestCase" or "TestCase"
         :param test_dict:
             python dictionary, will be modified
         """
@@ -76,6 +75,8 @@ class SphinxDocPlugin(Plugin):
         Convert list of tests stored in self.tests into
         a dictionary representing nested structure
         of tests. For example for given module structure:
+
+        .. code-block :: javascript
 
             top_level_module
                 -> sub_module
