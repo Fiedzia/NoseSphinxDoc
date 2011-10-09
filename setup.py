@@ -31,5 +31,5 @@ setup(
         'nose.plugins': ['nose_sphinx_doc = nose_sphinx_doc:SphinxDocPlugin']
         },
     install_requires = ['nose'],
-    #test_suite = 'tests',
+    test_suite = 'nose.collector',
 )

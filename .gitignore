@@ -6,4 +6,5 @@ local
 man
 build
 dist
+nose_sphinx_doc.egg-info/
 *.pyc
