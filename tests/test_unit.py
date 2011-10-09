@@ -8,7 +8,8 @@ from mock import Mock, patch
 
 from nose_sphinx_doc import SphinxDocPlugin
 
-def _get_test_case_mock(module_name = 'module'):
+
+def _get_test_case_mock(module_name='module'):
     """
     Return mock of an instance of :py:class:`nose.case.Test`.
     """
@@ -16,6 +17,7 @@ def _get_test_case_mock(module_name = 'module'):
     test.test = Mock(unittest.TestCase)
     test.test.__module__ = module_name
     return test
+
 
 def test_sphinx_doc_plugin__store_test__single_call():
     """
@@ -190,6 +192,7 @@ def test_sphinx_doc_plugin__process_tests_sphinx_section():
     result = plugin.sphinxSection('Tests', section_char='=')
     assert_equal(result, expected_result)
 
+
 @patch('nose_sphinx_doc.os')
 def test_sphinx_doc_plugin___makedirs_success(os_mock):
     """
@@ -198,6 +201,7 @@ def test_sphinx_doc_plugin___makedirs_success(os_mock):
     SphinxDocPlugin._makedirs('/a/b/c/d')
     assert_equal(os_mock.makedirs.call_count, 1)
     assert_equal(os_mock.makedirs.call_args, (('/a/b/c/d',), {}))
+
 
 @patch('nose_sphinx_doc.os')
 def test_sphinx_doc_plugin___makedirs_existing_dir(os_mock):
@@ -208,6 +212,7 @@ def test_sphinx_doc_plugin___makedirs_existing_dir(os_mock):
     os_mock.makedirs.side_effect.errno = errno.EEXIST
     SphinxDocPlugin._makedirs('/a/b/c/d')
 
+
 @patch('nose_sphinx_doc.os')
 def test_sphinx_doc_plugin___makedirs_exception(os_mock):
     """
@@ -215,6 +220,7 @@ def test_sphinx_doc_plugin___makedirs_exception(os_mock):
     """
     os_mock.makedirs.side_effect = OSError()
     assert_raises(OSError, SphinxDocPlugin._makedirs, '/a/b/c/d')
+
 
 def test_sphinx_doc_plugin___gen_header():
     """
@@ -224,13 +230,14 @@ def test_sphinx_doc_plugin___gen_header():
     assert_equal(plugin._gen_header([]), 'Tests')
     assert_equal(plugin._gen_header(['mod1', 'mod2']), 'Tests for mod1.mod2')
 
+
 def test_sphinx_doc_plugin___document_test_case():
     """
     Test :py:meth:`.SphinxDocPlugin._document_test_case`.
     """
     plugin = SphinxDocPlugin()
     test_info = {
-        'name':'test_me',
+        'name': 'test_me',
         'module': 'module',
         'test': _get_test_case_mock(),
         'type': 'TestCase',
