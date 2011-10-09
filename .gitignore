@@ -3,3 +3,5 @@ docs/_build
 include
 lib
 local
+man
+*.pyc
