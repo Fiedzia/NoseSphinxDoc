@@ -69,6 +69,38 @@ class SphinxDocPlugin(Plugin):
         else:
             current['__tests__'] = [test_info]
 
+    def extractTestInfo(self, test):
+        """
+        Extract usefull information from a test.
+
+        :param test:
+            an instance of :py:class:`nose.case.Test`
+        :returns:
+            dictionary with fllowing keys
+                * module
+                    module name
+                * name
+                    test name
+                * test
+                    :py:class:`nose.case.Test` instance
+                * type
+                    either 'FunctionTestCase' or 'TestCase'
+        """
+        if isinstance(test.test, nose.case.FunctionTestCase):
+            real_test = test.test.test  # get unwrapped test function
+            module = real_test.__module__
+            name = real_test.__name__
+            return {'module': module, 'name': name,
+                'test': test, 'type': 'FunctionTestCase'}
+
+        elif isinstance(test.test, unittest.TestCase):
+            module = test.test.__module__
+            name = type(test.test).__name__
+            return {'module': module, 'name': name,
+                'test': test, 'type': 'TestCase'}
+        else:
+            raise Exception('unsupported test type:' + str(test.test))
+
     def processTests(self, tests):
         """
         Convert list of tests stored in self.tests into
@@ -95,31 +127,14 @@ class SphinxDocPlugin(Plugin):
                         '__tests__: {
                             'test_me': ,
                             'MyTest': ,
-                         }
-                    }
+                     }
+                }
             }
         """
-        test_list = []  # list of tuples (module, name, test)
         test_dict = {}  # dict for storing test structure
 
         for test in tests:
-
-            if isinstance(test.test, nose.case.FunctionTestCase):
-                real_test = test.test.test  # get unwrapped test function
-                module = real_test.__module__
-                name = real_test.__name__
-                test_list.append({'module': module, 'name': name,
-                    'test': test, 'type': 'FunctionTestCase'})
-
-            elif issubclass(type(test.test), unittest.TestCase):
-                module = test.test.__module__
-                name = type(test.test).__name__
-                test_list.append({'module': module, 'name': name,
-                    'test': test, 'type': 'TestCase'})
-            else:
-                raise Exception('unsupported test type:' + str(test.test))
-
-        for test_info in test_list:
+            test_info = self.extractTestInfo(test)
             self.testToDict(test_dict, test_info)
         return test_dict
 
