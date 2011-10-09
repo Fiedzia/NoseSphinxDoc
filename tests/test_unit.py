@@ -228,7 +228,7 @@ def test_sphinx_doc_plugin___gen_header():
     """
     plugin = SphinxDocPlugin()
     assert_equal(plugin._gen_header([]), 'Tests')
-    assert_equal(plugin._gen_header(['mod1', 'mod2']), 'Tests for mod1.mod2')
+    assert_equal(plugin._gen_header(['mod1', 'mod2']), 'mod2')
 
 
 def test_sphinx_doc_plugin___document_test_case():

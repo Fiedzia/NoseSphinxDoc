@@ -170,7 +170,7 @@ class SphinxDocPlugin(Plugin):
         """
         header = 'Tests'
         if module_path:
-            header = 'Tests for {0}'.format('.'.join(module_path))
+            header = '{0}'.format(module_path[-1])
         return header
 
     def _document_test_case(self, test_info):
@@ -228,10 +228,10 @@ class SphinxDocPlugin(Plugin):
             submodules.remove('__tests__')
         if submodules:
             lines.append('.. toctree::\n')
-            lines.append('    :maxdepth: 2\n')
+            lines.append('    :maxdepth: 1\n')
             lines.append('\n')
             for submodule in submodules:
-                lines.append('    ./{0}/index\n'.format(submodule))
+                lines.append('    {0}<./{0}/index>\n'.format(submodule))
             lines.append('\n')
         return ''.join(lines)
 
@@ -243,6 +243,11 @@ class SphinxDocPlugin(Plugin):
         header = self._gen_header(module_path)
 
         docfile.write(self.sphinxSection(header, section_char='='))
+        if module_path:
+            docfile.write('    Tests in ``{0}``:\n\n'.format('.'.join(module_path)))
+        else:
+            docfile.write('    Tests in this project:\n\n')
+
         docfile.write(self._get_toc(test_dict))
 
         if '__tests__' in test_dict:
@@ -251,7 +256,7 @@ class SphinxDocPlugin(Plugin):
         submodules = sorted(test_dict.keys())
         if '__tests__' in submodules:
             submodules.remove('__tests__')
-        docfile.write(self._document_submodules(submodules))
+        #docfile.write(self._document_submodules(submodules))
         docfile.close()
 
         #recursive calls
