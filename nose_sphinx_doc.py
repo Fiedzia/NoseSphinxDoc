@@ -214,7 +214,7 @@ class SphinxDocPlugin(Plugin):
         if submodules:
             lines.append(self.sphinxSection('Submodules'))
         for m in submodules:
-                lines.append('{0}:doc:`{1} <./{1}/index.rst>`\n'.format(
+                lines.append('{0}:doc:`{1} <./{1}/index>`\n'.format(
                     ' ' * 4, m))
         return ''.join(lines)
        
