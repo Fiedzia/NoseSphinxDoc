@@ -1,5 +1,6 @@
 import copy
 import unittest
+import errno
 
 import nose
 from nose.tools import assert_equal, assert_raises
@@ -7,6 +8,14 @@ from mock import Mock, patch
 
 from nose_sphinx_doc import SphinxDocPlugin
 
+def _get_test_case_mock(module_name = 'module'):
+    """
+    Return mock of an instance of :py:class:`nose.case.Test`.
+    """
+    test = Mock(nose.case.Test)
+    test.test = Mock(unittest.TestCase)
+    test.test.__module__ = module_name
+    return test
 
 def test_sphinx_doc_plugin__store_test__single_call():
     """
@@ -90,7 +99,6 @@ def test_sphinx_doc_plugin__extract_test_info__test_case():
     plugin = SphinxDocPlugin()
     test = Mock(nose.case.Test)
     test.test = Mock(unittest.TestCase)
-    test.test.test = Mock()
     test.test.__module__ = 'module'
 
     expected_result = {
@@ -181,3 +189,51 @@ def test_sphinx_doc_plugin__process_tests_sphinx_section():
     expected_result = '=====\nTests\n=====\n'
     result = plugin.sphinxSection('Tests', section_char='=')
     assert_equal(result, expected_result)
+
+@patch('nose_sphinx_doc.os')
+def test_sphinx_doc_plugin___makedirs_success(os_mock):
+    """
+    Test :py:meth:`.SphinxDocPlugin._makedirs`.
+    """
+    SphinxDocPlugin._makedirs('/a/b/c/d')
+    assert_equal(os_mock.makedirs.call_count, 1)
+    assert_equal(os_mock.makedirs.call_args, (('/a/b/c/d',), {}))
+
+@patch('nose_sphinx_doc.os')
+def test_sphinx_doc_plugin___makedirs_existing_dir(os_mock):
+    """
+    Test :py:meth:`.SphinxDocPlugin._makedirs` for existing dir.
+    """
+    os_mock.makedirs.side_effect = OSError()
+    os_mock.makedirs.side_effect.errno = errno.EEXIST
+    SphinxDocPlugin._makedirs('/a/b/c/d')
+
+@patch('nose_sphinx_doc.os')
+def test_sphinx_doc_plugin___makedirs_exception(os_mock):
+    """
+    Test :py:meth:`.SphinxDocPlugin._makedirs` for exception raising.
+    """
+    os_mock.makedirs.side_effect = OSError()
+    assert_raises(OSError, SphinxDocPlugin._makedirs, '/a/b/c/d')
+
+def test_sphinx_doc_plugin___gen_header():
+    """
+    Test :py:meth:`.SphinxDocPlugin._gen_header`.
+    """
+    plugin = SphinxDocPlugin()
+    assert_equal(plugin._gen_header([]), 'Tests')
+    assert_equal(plugin._gen_header(['mod1', 'mod2']), 'Tests for mod1.mod2')
+
+def test_sphinx_doc_plugin___document_test_case():
+    """
+    Test :py:meth:`.SphinxDocPlugin._document_test_case`.
+    """
+    plugin = SphinxDocPlugin()
+    test_info = {
+        'name':'test_me',
+        'module': 'module',
+        'test': _get_test_case_mock(),
+        'type': 'TestCase',
+    }
+    expected = '    .. autoclass:: module.test_me\n        :members:\n'
+    assert_equal(plugin._document_test_case(test_info), expected)
