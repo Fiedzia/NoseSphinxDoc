@@ -231,7 +231,7 @@ class SphinxDocPlugin(Plugin):
             lines.append('    :maxdepth: 2\n')
             lines.append('\n')
             for submodule in submodules:
-                lines.append('    ./{0}/index\n').format(submodule)
+                lines.append('    ./{0}/index\n'.format(submodule))
             lines.append('\n')
         return ''.join(lines)
 
