@@ -244,7 +244,8 @@ class SphinxDocPlugin(Plugin):
 
         docfile.write(self.sphinxSection(header, section_char='='))
         if module_path:
-            docfile.write('    Tests in ``{0}``:\n\n'.format('.'.join(module_path)))
+            docfile.write('    Tests in ``{0}``:\n\n'.format(
+                '.'.join(module_path)))
         else:
             docfile.write('    Tests in this project:\n\n')
 
@@ -266,6 +267,49 @@ class SphinxDocPlugin(Plugin):
             self._traverse(test_dict[m], os.path.join(dirname, m),
                  new_module_path)
 
+    def _drawGraph(self, test_dict, fname):
+        """
+        Draw graph for all tests.
+        """
+        def _traverse(test_dict, module_path):
+            """
+            """
+            lines = []
+            submodules = sorted(test_dict.keys())
+            if '__tests__' in test_dict:
+                submodules.remove('__tests__')
+                for test in test_dict['__tests__']:
+                    lines.append('        "{0}.{1}" [label="{1}"];\n'.format(
+                        '.'.join(module_path), test['name']))
+                    lines.append('        "{0}" -- "{0}.{1}";\n'.format(
+                        '.'.join(module_path), test['name']))
+
+            for submodule in submodules:
+                node_id = '{0}.{1}'.format('.'.join(module_path), submodule)
+                if not module_path:
+                    node_id = submodule
+                lines.append('        "{0}" [label="{1}"];\n'.format(
+                    node_id, submodule))
+                if module_path:
+                    lines.append('        "{0}" -- "{0}.{1}";\n'.format(
+                        '.'.join(module_path), submodule))
+                new_module_path = module_path[:]
+                new_module_path.append(submodule)
+                lines.append(_traverse(test_dict[submodule], new_module_path))
+            return ''.join(lines)
+
+        graphfile = open(fname, 'w')
+        graphfile.write(self.sphinxSection('Graphs', section_char='='))
+        graphfile.write('.. graphviz::\n')
+
+        graphfile.write('    graph {\n')
+        graphfile.write('        label="Tests";\n')
+        graphfile.write(_traverse(test_dict, []))
+
+        graphfile.write('    }\n')
+
+        graphfile.close()
+
     def genSphinxDoc(self, test_dict, dirname):
         """
         For given test_dict create nested set .rst files for sphinx.
@@ -276,6 +320,8 @@ class SphinxDocPlugin(Plugin):
         :param: dirname:
             name of output directory
         """
+        if self.draw_graph:
+            self._drawGraph(test_dict, os.path.join(dirname, 'graph.rst'))
         self._traverse(test_dict, dirname, [])
 
     #methods inherited from Plugin
@@ -283,6 +329,7 @@ class SphinxDocPlugin(Plugin):
     def __init__(self, *args, **kwargs):
         super(SphinxDocPlugin, self).__init__(*args, **kwargs)
         self.tests = []  # list of all tests
+        self.draw_graph = False  # draw test graph
 
     def prepareTestCase(self, test):
         self.storeTest(test)
@@ -294,21 +341,29 @@ class SphinxDocPlugin(Plugin):
         #skip super call to avoid adding --with-* option.
         #super(SphinxDocPlugin, self).options(parser, env=env)
         parser.add_option('--sphinx-doc',
-                          action='store_true',
-                          dest=self.enableOpt,
-                          default=env.get('NOSE_SPHINX_DOC'),
-                          help="Enable sphinx-doc: %s [NOSE_SPHINX_DOC]" %
-                              (self.help()))
+                      action='store_true',
+                      dest=self.enableOpt,
+                      default=env.get('NOSE_SPHINX_DOC', False),
+                      help="Enable sphinx-doc: %s [NOSE_SPHINX_DOC]" %
+                          (self.help()))
         parser.add_option('--sphinx-doc-dir',
-                          dest='sphinx_doc_dir',
-                          default=env.get('NOSE_SPHINX_DOC_DIR', '_test_doc'),
-                          help="Output directory name for sphinx_doc,"
-                               " use with sphinx_doc option"
-                               " [NOSE_SPHINX_DOC_DIR]")
+                      dest='sphinx_doc_dir',
+                      default=env.get('NOSE_SPHINX_DOC_DIR', '_test_doc'),
+                      help="Output directory name for sphinx_doc,"
+                           " use with sphinx_doc option"
+                           " [NOSE_SPHINX_DOC_DIR]")
+        parser.add_option('--sphinx-doc-graph',
+                      action='store_true',
+                      dest='sphinx_doc_graph',
+                      default=env.get('NOSE_SPHINX_DOC_GRAPH', False),
+                      help="Create test graph using sphinx grapviz extension,"
+                           " use with sphinx_doc option"
+                           " [NOSE_SPHINX_DOC_GRAPH]")
 
     def configure(self, options, conf):
         super(SphinxDocPlugin, self).configure(options, conf)
         self.doc_dir_name = options.sphinx_doc_dir
+        self.draw_graph = options.sphinx_doc_graph
 
     def finalize(self, result):
         test_dict = self.processTests(self.tests)
