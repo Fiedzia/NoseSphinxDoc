@@ -18,6 +18,7 @@ Installation
 ------------
 
 ::
+
     pip install --upgrade "git+git://github.com/Fiedzia/NoseSphinxDoc.git#egg=Fiedzia"
 
 -----
