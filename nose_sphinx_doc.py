@@ -192,10 +192,9 @@ class SphinxDocPlugin(Plugin):
     def _document_test_case(self, test_info):
         """
         Return sphinx-formatted documentation of a test case.
-        
+
         Generate documentation for a :py:cls:``nose.case.TestCase``
         type of test.
-        
 
         :param test_info:
             dictionary
@@ -211,7 +210,7 @@ class SphinxDocPlugin(Plugin):
     def _document_function_test_case(self, test_info):
         """
         Return sphinx-formatted documntation of a test function.
-        
+
         Generate documentation for a :py:cls:``nos.case.FunctionTestCase``
         type of test.
 

@@ -245,6 +245,7 @@ def test_sphinx_doc_plugin___document_test_case():
     expected = '    .. autoclass:: module.test_me\n        :members:\n'
     assert_equal(plugin._document_test_case(test_info), expected)
 
+
 def test_sphinx_doc_plugin___document_function_test_case():
     """
     Test :py:meth:`.SphinxDocPlugin._document_funtion_test_case`.
@@ -258,6 +259,7 @@ def test_sphinx_doc_plugin___document_function_test_case():
     }
     expected = '    .. autofunction:: module.test_me\n'
     assert_equal(plugin._document_function_test_case(test_info), expected)
+
 
 def test_sphinx_doc_plugin___document_tests__empty():
     """
