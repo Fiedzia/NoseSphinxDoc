@@ -244,3 +244,28 @@ def test_sphinx_doc_plugin___document_test_case():
     }
     expected = '    .. autoclass:: module.test_me\n        :members:\n'
     assert_equal(plugin._document_test_case(test_info), expected)
+
+def test_sphinx_doc_plugin___document_function_test_case():
+    """
+    Test :py:meth:`.SphinxDocPlugin._document_funtion_test_case`.
+    """
+    plugin = SphinxDocPlugin()
+    test_info = {
+        'name': 'test_me',
+        'module': 'module',
+        'test': _get_test_case_mock(),
+        'type': 'FunctionTestCase',
+    }
+    expected = '    .. autofunction:: module.test_me\n'
+    assert_equal(plugin._document_function_test_case(test_info), expected)
+
+def test_sphinx_doc_plugin___document_tests__empty():
+    """
+    Test :py:meth:`.SphinxDocPlugin._document_tests` with empty list of tests.
+    """
+    plugin = SphinxDocPlugin()
+    plugin.sphinxSection = Mock()
+    result = plugin._document_tests([])
+    expected = ''
+    assert_equal(result, expected)
+    assert_equal(plugin.sphinxSection.call_count, 0)
