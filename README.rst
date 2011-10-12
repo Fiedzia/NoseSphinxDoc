@@ -17,7 +17,7 @@ reflecting structure of your modules.
 Installation
 ------------
 
-::
+    ::
 
     pip install --upgrade "git+git://github.com/Fiedzia/NoseSphinxDoc.git#egg=Fiedzia"
 
