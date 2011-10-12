@@ -359,9 +359,9 @@ class SphinxDocPlugin(Plugin):
         :param: dirname:
             name of output directory
         """
+        self._traverse(test_dict, dirname, [])
         if self.draw_graph:
             self._drawGraph(test_dict, os.path.join(dirname, 'graph.rst'))
-        self._traverse(test_dict, dirname, [])
 
     #methods inherited from Plugin
 
