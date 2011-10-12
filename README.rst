@@ -12,9 +12,19 @@ With this nose plugin you can easily automate generation of sphinx documentation
 for your tests. NoseSphinxDoc will create set of .rst files with proper references to tests,
 reflecting structure of your modules.
 
+
+------------
+Installation
+------------
+
+::
+    pip install --upgrade "git+git://github.com/Fiedzia/NoseSphinxDoc.git#egg=Fiedzia"
+
 -----
 Usage
 -----
+
+
 
 Basically::
 
