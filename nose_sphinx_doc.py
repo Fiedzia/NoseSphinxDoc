@@ -103,8 +103,7 @@ class SphinxDocPlugin(Plugin):
 
     def processTests(self, tests):
         """
-        Convert list of tests stored in self.tests into
-        a dictionary representing nested structure
+        Convert list of tests into a dictionary representing nested structure
         of tests.
 
         For example for given module structure:
@@ -130,6 +129,11 @@ class SphinxDocPlugin(Plugin):
                      }
                 }
             }
+
+        :param tests:
+            list of istances of :py:class:`nose.case.Test`
+        :returns:
+            dictionary
         """
         test_dict = {}  # dict for storing test structure
 
@@ -155,6 +159,13 @@ class SphinxDocPlugin(Plugin):
     def _makedirs(cls, dirname):
         """
         Create directory structure without failing on existing dirs.
+
+        :param dirname:
+            directory name
+        :raises:
+            :py:exc:``OSError``
+        :returns:
+            None
         """
         try:
             os.makedirs(dirname)
@@ -167,6 +178,11 @@ class SphinxDocPlugin(Plugin):
     def _gen_header(self, module_path):
         """
         Generate header.
+
+        :param module_path:
+            list of module names
+        :returns:
+            text of section header
         """
         header = 'Tests'
         if module_path:
@@ -175,7 +191,16 @@ class SphinxDocPlugin(Plugin):
 
     def _document_test_case(self, test_info):
         """
-        Return sphinx-formatted doc for a TestCase type of test.
+        Return sphinx-formatted documentation of a test case.
+        
+        Generate documentation for a :py:cls:``nose.case.TestCase``
+        type of test.
+        
+
+        :param test_info:
+            dictionary
+        :returns:
+            sphinx-formatted text
         """
         lines = []
         lines.append('{0}.. autoclass:: {1}.{2}\n'.format(
@@ -185,13 +210,27 @@ class SphinxDocPlugin(Plugin):
 
     def _document_function_test_case(self, test_info):
         """
-        Return sphinx-formatted doc for a FunctionTestCase type of test.
+        Return sphinx-formatted documntation of a test function.
+        
+        Generate documentation for a :py:cls:``nos.case.FunctionTestCase``
+        type of test.
+
+        :param test_info:
+            dictionary
+        :returns:
+            sphinx-formatted text
         """
         return('{0}.. autofunction:: {1}.{2}\n'.format(
             ' ' * 4, test_info['module'], test_info['name']))
 
     def _document_tests(self, test_info_list):
         """
+        Generate sphinx section with a list of references to tests.
+
+        :param test_info_list:
+            List of ``test_info`` dictionaries
+        :returns:
+            sphinx-formatted documentation of test
         """
         if not test_info_list:
             return ''
@@ -203,8 +242,9 @@ class SphinxDocPlugin(Plugin):
                 lines.append(self._document_test_case(test_info))
             elif test_info['type'] == 'FunctionTestCase':
                 lines.append(self._document_function_test_case(test_info))
+            else:
+                raise Exception('unknown test type')
         lines.append('\n')
-
         return ''.join(lines)
 
     def _document_submodules(self, submodules):
