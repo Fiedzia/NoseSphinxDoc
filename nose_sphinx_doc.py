@@ -294,7 +294,7 @@ class SphinxDocPlugin(Plugin):
                  new_module_path)
         if self.draw_graph:
             docfile.write(self.sphinxSection('Test graph'))
-            docfile.write('.. graphviz::tests.dot\n')
+            docfile.write('.. graphviz:: tests.dot\n')
 
         docfile.close()
 
