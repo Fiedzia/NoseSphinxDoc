@@ -292,9 +292,10 @@ class SphinxDocPlugin(Plugin):
             new_module_path.append(m)
             self._traverse(test_dict[m], os.path.join(dirname, m),
                  new_module_path)
-        if self.draw_graph:
-            docfile.write(self.sphinxSection('Test graph'))
-            docfile.write('.. graphviz:: tests.dot\n')
+        if module_path == []:  # top-level
+            if self.draw_graph:
+                docfile.write(self.sphinxSection('Test graph'))
+                docfile.write('.. graphviz:: tests.dot\n')
 
         docfile.close()
 

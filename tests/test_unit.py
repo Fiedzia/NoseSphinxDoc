@@ -18,6 +18,7 @@ def _get_test_case_mock(module_name='module'):
     test.test.__module__ = module_name
     return test
 
+
 def _get_function_test_case_mock(module_name='module'):
     """
     Return mock of an instance of :py:class:`nose.case.Test`.
