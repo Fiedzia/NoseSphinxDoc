@@ -305,6 +305,9 @@ class SphinxDocPlugin(Plugin):
             new_module_path.append(m)
             self._traverse(test_dict[m], os.path.join(dirname, m),
                  new_module_path)
+        if self.draw_graph:
+            docfile.write(self.sphinxSection('Test graph'))
+            docfile.write('.. graphviz::tests.dot\n')
 
     def _drawGraph(self, test_dict, fname):
         """
@@ -339,13 +342,12 @@ class SphinxDocPlugin(Plugin):
 
         graphfile = open(fname, 'w')
         graphfile.write(self.sphinxSection('Graphs', section_char='='))
-        graphfile.write('.. graphviz::\n')
 
-        graphfile.write('    graph {\n')
-        graphfile.write('        label="Tests";\n')
+        graphfile.write('graph {\n')
+        graphfile.write('    label="Tests";\n')
         graphfile.write(_traverse(test_dict, []))
 
-        graphfile.write('    }\n')
+        graphfile.write('}\n')
 
         graphfile.close()
 
@@ -361,7 +363,7 @@ class SphinxDocPlugin(Plugin):
         """
         self._traverse(test_dict, dirname, [])
         if self.draw_graph:
-            self._drawGraph(test_dict, os.path.join(dirname, 'graph.rst'))
+            self._drawGraph(test_dict, os.path.join(dirname, 'tests.dot'))
 
     #methods inherited from Plugin
 

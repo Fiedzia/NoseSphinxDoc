@@ -41,7 +41,7 @@ In order to link generated documentation you will need to reference
 ./doc/tests/index.rst file somewhere in your documentation.
 Top level index.rst is a good place to do that.
 
-NoseSphinxDoc does not require test to actually be run, its will happily work with
+NoseSphinxDoc does not require test to actually be run, its should happily work with
 collect-only plugin, so you can run nose to document all tests, and then run it again
 and execute only subset of them.
 

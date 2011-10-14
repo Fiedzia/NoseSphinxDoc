@@ -18,6 +18,41 @@ def _get_test_case_mock(module_name='module'):
     test.test.__module__ = module_name
     return test
 
+def _get_function_test_case_mock(module_name='module'):
+    """
+    Return mock of an instance of :py:class:`nose.case.Test`.
+    """
+    test = Mock(nose.case.Test)
+    test.test = Mock(unittest.TestCase)
+    test.test.__module__ = module_name
+    return test
+
+
+def _get_test_case_info_mock():
+    """
+    Return mock of test_info structure
+    """
+    test_info = {
+        'name': 'test_me',
+        'module': 'module',
+        'test': _get_test_case_mock(),
+        'type': 'TestCase',
+    }
+    return test_info
+
+
+def _get_function_test_case_info_mock():
+    """
+    Return mock of test_info structure
+    """
+    test_info = {
+        'name': 'test_me',
+        'module': 'module',
+        'test': _get_function_test_case_mock(),
+        'type': 'FunctionTestCase',
+    }
+    return test_info
+
 
 def test_sphinx_doc_plugin__store_test__single_call():
     """
@@ -271,3 +306,37 @@ def test_sphinx_doc_plugin___document_tests__empty():
     expected = ''
     assert_equal(result, expected)
     assert_equal(plugin.sphinxSection.call_count, 0)
+
+
+def test_sphinx_doc_plugin___document_tests__test_case():
+    """
+    Test :py:meth:`.SphinxDocPlugin._document_tests`` with a ``TestCase``.
+
+    Test :py:meth:`.SphinxDocPlugin._document_tests` with an instance of
+    :py:cls:``nose.case.TestCase``.
+    """
+    plugin = SphinxDocPlugin()
+    plugin.sphinxSection = Mock(return_value='')
+    plugin._document_test_case = Mock(return_value='')
+    result = plugin._document_tests([_get_test_case_info_mock()])
+    #expect only \n, as section and test docs are mocked to return ''
+    expected = '\n'
+    assert_equal(result, expected)
+    assert_equal(plugin.sphinxSection.call_count, 1)
+
+
+def test_sphinx_doc_plugin___document_tests__function_test_case():
+    """
+    Test ``SphinxDocPlugin._document_tests`` with a ``FunctionTestCase``.
+
+    Test :py:meth:`.SphinxDocPlugin._document_tests` with an instance of
+    :py:cls:``nose.case.FunctionTestCase``.
+    """
+    plugin = SphinxDocPlugin()
+    plugin.sphinxSection = Mock(return_value='')
+    plugin._document_function_test_case = Mock(return_value='')
+    result = plugin._document_tests([_get_function_test_case_info_mock()])
+    #expect only \n, as section and test docs are mocked to return ''
+    expected = '\n'
+    assert_equal(result, expected)
+    assert_equal(plugin.sphinxSection.call_count, 1)
