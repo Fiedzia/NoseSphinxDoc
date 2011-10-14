@@ -246,17 +246,6 @@ class SphinxDocPlugin(Plugin):
         lines.append('\n')
         return ''.join(lines)
 
-    def _document_submodules(self, submodules):
-        """
-        """
-        lines = []
-        if submodules:
-            lines.append(self.sphinxSection('Submodules'))
-        for m in submodules:
-                lines.append('{0}:doc:`{1} <./{1}/index>`\n'.format(
-                    ' ' * 4, m))
-        return ''.join(lines)
-
     def _get_toc(self, test_dict):
         """
         Generate TOC for submodules.
@@ -296,8 +285,6 @@ class SphinxDocPlugin(Plugin):
         submodules = sorted(test_dict.keys())
         if '__tests__' in submodules:
             submodules.remove('__tests__')
-        #docfile.write(self._document_submodules(submodules))
-        docfile.close()
 
         #recursive calls
         for m in submodules:
@@ -308,6 +295,8 @@ class SphinxDocPlugin(Plugin):
         if self.draw_graph:
             docfile.write(self.sphinxSection('Test graph'))
             docfile.write('.. graphviz::tests.dot\n')
+
+        docfile.close()
 
     def _drawGraph(self, test_dict, fname):
         """
