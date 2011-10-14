@@ -12,7 +12,6 @@ With this nose plugin you can easily automate generation of sphinx documentation
 for your tests. NoseSphinxDoc will create set of .rst files with proper references to tests,
 reflecting structure of your modules.
 
-
 ------------
 Installation
 ------------
@@ -24,8 +23,6 @@ Installation
 -----
 Usage
 -----
-
-
 
 Basically::
 
@@ -45,8 +42,6 @@ NoseSphinxDoc does not require test to actually be run, its should happily work 
 collect-only plugin, so you can run nose to document all tests, and then run it again
 and execute only subset of them.
 
-
-If you use ``--sphinx-doc-graph`` option, graph.rst file will be created,
+If you use ``--sphinx-doc-graph`` option, a graph will be created,
 with a simple drawing of your tests structure. This requires ``sphinx.ext.graphviz``
 to be added to sphinx extension list.
-

@@ -11,10 +11,9 @@ LOGGER = logging.getLogger(__file__)
 """
     TODO:
         * complete sphinx documentation
-        * prepare nose plugin
+        * publish to pypi
         * test counter (test count in brackets next to  submodule links)
         * tests (unit and functional)
-        * graphviz graphs
 """
 
 
@@ -331,7 +330,6 @@ class SphinxDocPlugin(Plugin):
             return ''.join(lines)
 
         graphfile = open(fname, 'w')
-        graphfile.write(self.sphinxSection('Graphs', section_char='='))
 
         graphfile.write('graph {\n')
         graphfile.write('    label="Tests";\n')
