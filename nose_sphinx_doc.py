@@ -2,6 +2,7 @@ import os
 import logging
 import unittest
 import errno
+import re
 
 import nose
 from nose.plugins import Plugin
@@ -51,7 +52,7 @@ class SphinxDocPlugin(Plugin):
             * module: module name
             * name: test name
             * test: an instance of :py:class:`nose.case.Test`
-            * type: either "FunctionTestCase" or "TestCase"
+            * type: either "DocTestCase", "FunctionTestCase" or "TestCase"
         :param test_dict:
             python dictionary, will be modified
         """
@@ -75,7 +76,7 @@ class SphinxDocPlugin(Plugin):
         :param test:
             an instance of :py:class:`nose.case.Test`
         :returns:
-            dictionary with fllowing keys
+            dictionary with following keys
                 * module
                     module name
                 * name
@@ -83,9 +84,16 @@ class SphinxDocPlugin(Plugin):
                 * test
                     :py:class:`nose.case.Test` instance
                 * type
-                    either 'FunctionTestCase' or 'TestCase'
+                    either 'DocTestCase', 'FunctionTestCase' or 'TestCase'
         """
-        if isinstance(test.test, nose.case.FunctionTestCase):
+        if isinstance(test.test, nose.plugins.doctests.DocTestCase):
+            address = test.test.address()  # tuple: (file, module, name)
+            module = address[1]
+            name = test.test.id().replace(module+'.', '', 1)
+            return {'module': module, 'name': name,
+                'test': test, 'type': 'DocTestCase'}
+           
+        elif isinstance(test.test, nose.case.FunctionTestCase):
             real_test = test.test.test  # get unwrapped test function
             module = real_test.__module__
             name = real_test.__name__
@@ -192,7 +200,7 @@ class SphinxDocPlugin(Plugin):
         """
         Return sphinx-formatted documentation of a test case.
 
-        Generate documentation for a :py:cls:``nose.case.TestCase``
+        Generate documentation for a :py:class:``nose.case.TestCase``
         type of test.
 
         :param test_info:
@@ -203,14 +211,15 @@ class SphinxDocPlugin(Plugin):
         lines = []
         lines.append('{0}.. autoclass:: {1}.{2}\n'.format(
                 ' ' * 4, test_info['module'], test_info['name']))
-        lines.append('{0}:members:\n'.format(' ' * 8))
+        lines.append('{0}:members:\n\n'.format(' ' * 8))
         return ''.join(lines)
 
-    def _document_function_test_case(self, test_info):
+    def _document_doc_test_case(self, test_info):
         """
-        Return sphinx-formatted documntation of a test function.
+        Return sphinx-formatted documentation of a doctest case.
 
-        Generate documentation for a :py:cls:``nos.case.FunctionTestCase``
+        Generate documentation for a
+        :py:class:``nose.plugins.doctest.DocTestCase``
         type of test.
 
         :param test_info:
@@ -218,7 +227,49 @@ class SphinxDocPlugin(Plugin):
         :returns:
             sphinx-formatted text
         """
-        return('{0}.. autofunction:: {1}.{2}\n'.format(
+        lines = []
+        lines.append('{0}Doctest in {1}.{2}:\n{3}.. code-block:: python\n'.format(
+                ' ' * 4, test_info['module'], test_info['name'], ' ' * 8))
+        docstring = test_info['test'].test._dt_test.docstring
+        docstring_lines = self._lstrip_common_spaces(docstring.split('\n'))
+        lines.extend(['{0}{1}\n'.format(' ' * 12, line) for line in docstring_lines])
+        lines.append( ' ' * 8 + '\n')
+        return ''.join(lines)
+
+    def _lstrip_common_spaces(self, lines):
+        """
+        Remove prefixing spaces, without affecting text indentation.
+        I.e. if first line contains 4 prefixing spaces, and second
+        contains 8 spaces, return first line empty, and second with 4 prefixing spaces.
+
+        :param lines:
+            lines of text
+        :returns:
+            lines of text with 
+        """
+        result = lines
+        space_counters = [len(re.findall(r'^ +', line)[0])
+                            for line in result
+                            if len(line) > 0]
+        if space_counters:
+            min_val = min(space_counters)
+            if min_val > 0:
+                result = [re.sub('^\\ {{{0}}}'.format(min_val), '', line, count=1) for line in lines]
+        return result
+
+    def _document_function_test_case(self, test_info):
+        """
+        Return sphinx-formatted documentation of a test function.
+
+        Generate documentation for a :py:class:``nose.case.FunctionTestCase``
+        type of test.
+
+        :param test_info:
+            dictionary
+        :returns:
+            sphinx-formatted text
+        """
+        return('{0}.. autofunction:: {1}.{2}\n\n'.format(
             ' ' * 4, test_info['module'], test_info['name']))
 
     def _document_tests(self, test_info_list):
@@ -238,6 +289,8 @@ class SphinxDocPlugin(Plugin):
         for test_info in test_info_list:
             if test_info['type'] == 'TestCase':
                 lines.append(self._document_test_case(test_info))
+            elif test_info['type'] == 'DocTestCase':
+                lines.append(self._document_doc_test_case(test_info))
             elif test_info['type'] == 'FunctionTestCase':
                 lines.append(self._document_function_test_case(test_info))
             else:
